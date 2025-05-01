@@ -1,8 +1,8 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { streamText, UIMessage } from "ai";
-import { killDesktop } from "@/lib/e2b/utils";
-import { bashTool, computerTool } from "@/lib/e2b/tool";
 import { prunedMessages } from "@/lib/utils";
+import { bashTool, computerTool } from "@/lib/cyberdesk/tool";
+import client from "@/lib/cyberdesk/client";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 300;
@@ -38,7 +38,11 @@ export async function POST(req: Request) {
     return response;
   } catch (error) {
     console.error("Chat API error:", error);
-    await killDesktop(sandboxId); // Force cleanup on error
+    await client.terminateDesktop({
+      path: {
+        id: sandboxId,
+      },
+    });
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

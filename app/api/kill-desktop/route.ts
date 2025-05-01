@@ -1,4 +1,4 @@
-import { killDesktop } from "@/lib/e2b/utils";
+import client from "@/lib/cyberdesk/client";
 
 // Common handler for both GET and POST requests
 async function handleKillDesktop(request: Request) {
@@ -14,7 +14,11 @@ async function handleKillDesktop(request: Request) {
   }
 
   try {
-    await killDesktop(sandboxId);
+    await client.terminateDesktop({
+      path: {
+        id: sandboxId,
+      }
+    });
     return new Response("Desktop killed successfully", { status: 200 });
   } catch (error) {
     console.error(`Failed to kill desktop with ID: ${sandboxId}`, error);

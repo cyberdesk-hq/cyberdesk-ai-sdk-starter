@@ -1,5 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { getDesktop } from "./utils";
+import client from "./client";
 
 const wait = async (seconds: number) => {
   await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -21,16 +21,22 @@ export const computerTool = (sandboxId: string) =>
       scroll_direction,
       start_coordinate,
     }) => {
-      const desktop = await getDesktop(sandboxId);
-
       switch (action) {
         case "screenshot": {
-          const image = await desktop.screenshot();
-          // Convert image data to base64 immediately
-          const base64Data = Buffer.from(image).toString("base64");
+          const response = await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "screenshot",
+            },
+          });
+
+          const base64Image = response.data?.base64_image;
+          if (!base64Image) throw new Error("No image data received");
           return {
             type: "image" as const,
-            data: base64Data,
+            data: base64Image,
           };
         }
         case "wait": {
@@ -46,16 +52,32 @@ export const computerTool = (sandboxId: string) =>
           if (!coordinate)
             throw new Error("Coordinate required for left click action");
           const [x, y] = coordinate;
-          await desktop.moveMouse(x, y);
-          await desktop.leftClick();
-          return { type: "text" as const, text: `Left clicked at ${x}, ${y}` };
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "move_mouse",
+              x,
+              y,
+            },
+          });
         }
         case "double_click": {
           if (!coordinate)
             throw new Error("Coordinate required for double click action");
           const [x, y] = coordinate;
-          await desktop.moveMouse(x, y);
-          await desktop.doubleClick();
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "click_mouse",
+              x,
+              y,
+              num_of_clicks: 2,
+            },
+          });
           return {
             type: "text" as const,
             text: `Double clicked at ${x}, ${y}`,
@@ -65,25 +87,67 @@ export const computerTool = (sandboxId: string) =>
           if (!coordinate)
             throw new Error("Coordinate required for right click action");
           const [x, y] = coordinate;
-          await desktop.moveMouse(x, y);
-          await desktop.rightClick();
-          return { type: "text" as const, text: `Right clicked at ${x}, ${y}` };
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "click_mouse",
+              x,
+              y,
+              num_of_clicks: 1,
+              button: "right",
+              click_type: "click",
+            },
+          });
+          return {
+            type: "text" as const,
+            text: `Right clicked at ${x}, ${y}`,
+          };
         }
         case "mouse_move": {
           if (!coordinate)
             throw new Error("Coordinate required for mouse move action");
           const [x, y] = coordinate;
-          await desktop.moveMouse(x, y);
-          return { type: "text" as const, text: `Moved mouse to ${x}, ${y}` };
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "move_mouse",
+              x,
+              y,
+            },
+          });
+          return {
+            type: "text" as const,
+            text: `Moved mouse to ${x}, ${y}`,
+          };
         }
         case "type": {
           if (!text) throw new Error("Text required for type action");
-          await desktop.write(text);
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "type",
+              text,
+            }
+          })
           return { type: "text" as const, text: `Typed: ${text}` };
         }
         case "key": {
           if (!text) throw new Error("Key required for key action");
-          await desktop.press(text === "Return" ? "enter" : text);
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "press_keys",
+              keys: text
+            },
+          });
           return { type: "text" as const, text: `Pressed key: ${text}` };
         }
         case "scroll": {
@@ -92,10 +156,16 @@ export const computerTool = (sandboxId: string) =>
           if (!scroll_amount)
             throw new Error("Scroll amount required for scroll action");
 
-          await desktop.scroll(
-            scroll_direction as "up" | "down",
-            scroll_amount,
-          );
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "scroll",
+              direction: scroll_direction,
+              amount: scroll_amount,
+            },
+          });
           return { type: "text" as const, text: `Scrolled ${text}` };
         }
         case "left_click_drag": {
@@ -104,7 +174,16 @@ export const computerTool = (sandboxId: string) =>
           const [startX, startY] = start_coordinate;
           const [endX, endY] = coordinate;
 
-          await desktop.drag([startX, startY], [endX, endY]);
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "drag_mouse",
+              start: { x: startX, y: startY },
+              end: { x: endX, y: endY },
+            },
+          });
           return {
             type: "text" as const,
             text: `Dragged mouse from ${startX}, ${startY} to ${endX}, ${endY}`,
@@ -123,7 +202,7 @@ export const computerTool = (sandboxId: string) =>
           {
             type: "image",
             data: result.data,
-            mimeType: "image/png",
+            mimeType: "image/jpeg",
           },
         ];
       }
@@ -137,12 +216,23 @@ export const computerTool = (sandboxId: string) =>
 export const bashTool = (sandboxId?: string) =>
   anthropic.tools.bash_20250124({
     execute: async ({ command }) => {
-      const desktop = await getDesktop(sandboxId);
-
+      if (!sandboxId) throw new Error("Sandbox ID required for bash action");
       try {
-        const result = await desktop.commands.run(command);
+        const result = await client.executeBashAction({
+          path: {
+            id: sandboxId,
+          },
+          body: {
+            command,
+          },
+        });
+
+        if (result.data?.error) {
+          throw new Error(result.data.error);
+        }
+        
         return (
-          result.stdout || "(Command executed successfully with no output)"
+          result.data?.output || "(Command executed successfully with no output)"
         );
       } catch (error) {
         console.error("Bash command failed:", error);
