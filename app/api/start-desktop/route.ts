@@ -4,7 +4,7 @@ async function handleStartDesktop(request: Request) {
 
   const result = await client.launchDesktop({
     body: {
-      timeout_ms: 300000,
+      timeout_ms: 86400000,
     }
   })
 
