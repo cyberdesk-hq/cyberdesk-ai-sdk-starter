@@ -83,6 +83,26 @@ export const computerTool = (sandboxId: string) =>
             text: `Double clicked at ${x}, ${y}`,
           };
         }
+        case "triple_click": {
+          if (!coordinate)
+            throw new Error("Coordinate required for triple click action");
+          const [x, y] = coordinate;
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "click_mouse",
+              x,
+              y,
+              num_of_clicks: 3,
+            },
+          });
+          return {
+            type: "text" as const,
+            text: `Triple clicked at ${x}, ${y}`,
+          };
+        }
         case "right_click": {
           if (!coordinate)
             throw new Error("Coordinate required for right click action");
@@ -188,6 +208,90 @@ export const computerTool = (sandboxId: string) =>
             type: "text" as const,
             text: `Dragged mouse from ${startX}, ${startY} to ${endX}, ${endY}`,
           };
+        }
+        case "cursor_position": {
+          const response = await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "get_cursor_position",
+            },
+          });
+
+          if (!response.data?.output) throw new Error("No output received");
+
+          return {
+            type: "text" as const,
+            text: `Cursor position data: ${response.data?.output}`,
+          };
+        }
+        case "hold_key": {
+          if (!text) throw new Error("Key required for hold key action");
+          if (!duration) throw new Error("Duration required for hold key action");
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "press_keys",
+              keys: text,
+              key_action_type: "down",
+            },
+          });
+
+          await wait(duration);
+
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "press_keys",
+              keys: text,
+              key_action_type: "up",
+            },
+          });
+          return { type: "text" as const, text: `Held key ${text} for ${duration} seconds` };
+        }
+        case "left_mouse_down": {
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "click_mouse",
+              button: "left",
+              click_type: "down",
+            },
+          });
+          return { type: "text" as const, text: `Left mouse button down` };
+        }
+        case "left_mouse_up": {
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "click_mouse",
+              button: "left",
+              click_type: "up",
+            },
+          });
+          return { type: "text" as const, text: `Left mouse button up` };
+        }
+        case "middle_click": {
+          await client.executeComputerAction({
+            path: {
+              id: sandboxId,
+            },
+            body: {
+              type: "click_mouse",
+              button: "middle",
+              click_type: "click",
+            },
+          });
+          return { type: "text" as const, text: `Middle mouse button clicked` };
         }
         default:
           throw new Error(`Unsupported action: ${action}`);
