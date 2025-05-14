@@ -57,11 +57,18 @@ export const computerTool = (sandboxId: string) =>
               id: sandboxId,
             },
             body: {
-              type: "move_mouse",
+              type: "click_mouse",
               x,
               y,
+              num_of_clicks: 1,
+              button: "left",
+              click_type: "click",
             },
           });
+          return {
+            type: "text" as const,
+            text: `Left clicked at ${x}, ${y}`,
+          };
         }
         case "double_click": {
           if (!coordinate)

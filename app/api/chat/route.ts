@@ -25,6 +25,7 @@ export async function POST(req: Request) {
       providerOptions: {
         anthropic: { cacheControl: { type: "ephemeral" } },
       },
+      maxSteps: 100,
     });
 
     // Create response stream

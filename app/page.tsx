@@ -282,9 +282,6 @@ export default function Chat() {
             minSize={25}
             className="flex flex-col border-l border-zinc-200"
           >
-            <div className="bg-white py-4 px-4 flex justify-between items-center">
-              <AISDKLogo />
-            </div>
             <div
               className="flex-1 space-y-6 py-4 overflow-y-auto px-4"
               ref={desktopContainerRef}
@@ -326,9 +323,6 @@ export default function Chat() {
       </div>
       {/* Mobile View (Chat Only) */}
       <div className="w-full xl:hidden flex flex-col">
-        <div className="bg-white py-4 px-4 flex justify-between items-center">
-          <AISDKLogo />
-        </div>
         <div
           className="flex-1 space-y-6 py-4 overflow-y-auto px-4"
           ref={mobileContainerRef}
