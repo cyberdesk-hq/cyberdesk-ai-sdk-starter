@@ -1,8 +1,8 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { streamText, UIMessage } from "ai";
 import { prunedMessages } from "@/lib/utils";
+import { getCyberdeskClient } from "@/lib/cyberdesk/client";
 import { bashTool, computerTool } from "@/lib/cyberdesk/tool";
-import client from "@/lib/cyberdesk/client";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 300;
@@ -10,6 +10,8 @@ export const maxDuration = 300;
 export async function POST(req: Request) {
   const { messages, sandboxId }: { messages: UIMessage[]; sandboxId: string } =
     await req.json();
+  const client = getCyberdeskClient();
+
   try {
     const result = streamText({
       model: anthropic("claude-3-7-sonnet-20250219"), // Using Sonnet for computer use

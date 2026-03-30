@@ -1,6 +1,7 @@
-import client from "@/lib/cyberdesk/client";
+import { getCyberdeskClient } from "@/lib/cyberdesk/client";
 
-async function handleStartDesktop(request: Request) {
+async function handleStartDesktop() {
+  const client = getCyberdeskClient();
 
   const result = await client.launchDesktop({
     body: {
@@ -16,6 +17,6 @@ async function handleStartDesktop(request: Request) {
 }
 
 // Handle POST requests
-export async function POST(request: Request) {
-  return handleStartDesktop(request);
+export async function POST() {
+  return handleStartDesktop();
 } 

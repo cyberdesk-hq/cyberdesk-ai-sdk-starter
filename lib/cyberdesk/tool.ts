@@ -1,5 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import client from "./client";
+import { getCyberdeskClient } from "./client";
 
 const wait = async (seconds: number) => {
   await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -21,6 +21,8 @@ export const computerTool = (sandboxId: string) =>
       scroll_direction,
       start_coordinate,
     }) => {
+      const client = getCyberdeskClient();
+
       switch (action) {
         case "screenshot": {
           const response = await client.executeComputerAction({
@@ -328,6 +330,7 @@ export const bashTool = (sandboxId?: string) =>
   anthropic.tools.bash_20250124({
     execute: async ({ command }) => {
       if (!sandboxId) throw new Error("Sandbox ID required for bash action");
+      const client = getCyberdeskClient();
       try {
         const result = await client.executeBashAction({
           path: {

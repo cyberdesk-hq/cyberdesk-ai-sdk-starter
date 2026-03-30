@@ -1,4 +1,4 @@
-import client from "@/lib/cyberdesk/client";
+import { getCyberdeskClient } from "@/lib/cyberdesk/client";
 
 // Common handler for both GET and POST requests
 async function handleKillDesktop(request: Request) {
@@ -14,6 +14,7 @@ async function handleKillDesktop(request: Request) {
   }
 
   try {
+    const client = getCyberdeskClient();
     await client.terminateDesktop({
       path: {
         id: sandboxId,
