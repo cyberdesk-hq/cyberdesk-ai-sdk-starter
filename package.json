@@ -47,6 +47,9 @@
     "typescript": "^5"
   },
   "overrides": {
-    "handlebars": "4.7.9"
+    "handlebars": "4.7.9",
+    "micromatch": {
+      "picomatch": "2.3.2"
+    }
   }
 }
