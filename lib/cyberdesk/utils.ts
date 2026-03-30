@@ -1,10 +1,11 @@
 "use server";
 
-import client from "./client";
+import { getCyberdeskClient } from "./client";
 
 export const getDesktopURL = async (id?: string) => {
   if (!id) throw new Error("Sandbox ID required for getDesktopURL");
   try {
+    const client = getCyberdeskClient();
     const response = await client.getDesktop({
       path: {
         id,

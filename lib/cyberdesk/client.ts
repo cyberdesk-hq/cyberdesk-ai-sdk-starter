@@ -1,8 +1,14 @@
 import { createCyberdeskClient } from "cyberdesk";
 
-const client = createCyberdeskClient({
-  apiKey: process.env.CYBERDESK_API_KEY || "",
-  baseUrl: "https://api.cyberdesk.io",
-});
+let client: ReturnType<typeof createCyberdeskClient> | undefined;
 
-export default client;
+export function getCyberdeskClient() {
+  if (!client) {
+    client = createCyberdeskClient({
+      apiKey: process.env.CYBERDESK_API_KEY || "",
+      baseUrl: "https://api.cyberdesk.io",
+    });
+  }
+
+  return client;
+}

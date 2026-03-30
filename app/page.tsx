@@ -9,7 +9,6 @@ import { Input } from "@/components/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ProjectInfo } from "@/components/project-info";
-import { AISDKLogo } from "@/components/icons";
 import { PromptSuggestions } from "@/components/prompt-suggestions";
 import {
   ResizableHandle,
