@@ -45,5 +45,8 @@
     "eslint-config-next": "15.2.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "handlebars": "4.7.9"
   }
 }
